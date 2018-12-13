@@ -5,13 +5,13 @@ class LandingSite:
 
     num_of_sites = 0
 
-    def __init__(self, name, lon, lat, altitude, priority):
+    def __init__(self, name, lon, lat, altitude, rank):
         self.uid = LandingSite.num_of_sites
         self.name = name
         self.latitude = lat
         self.longitude = lon
         self.altitude = altitude
-        self.priority = priority
+        self.rank = rank
         LandingSite.num_of_sites += 1
 
     def lon(self):
@@ -19,4 +19,7 @@ class LandingSite:
 
     def lat(self):
         return self.latitude
+
+    def cost(self):
+        return 1/self.rank
 

@@ -14,7 +14,7 @@ def maximize_range(P_A, Z_I, V_0, W_XI, W_YI, d_Psi_I, landing_sites):
         i = int((Psi_i % 2*pi)/d_Psi_I)
         R_max = (site.altitude - Z_I)/RE[i]
         if r_0 < R_max:
-            current_cost = calc_cost(site)
+            current_cost = site.cost()
             if current_cost < min_cost:
                 chosen_site = site
                 min_cost = current_cost
@@ -32,8 +32,8 @@ def maximize_range(P_A, Z_I, V_0, W_XI, W_YI, d_Psi_I, landing_sites):
 
 
 def calc_psi(P_A, P_B):
-    N_comp = P_B.lat - P_A.lat
-    E_comp = P_B.lon - P_A.lon
+    N_comp = P_B.lat() - P_A.lat()
+    E_comp = P_B.lon() - P_A.lon()
     Psi = arctan(N_comp/E_comp)
     if E_comp < 0:
         Psi += pi
@@ -44,14 +44,10 @@ def calc_psi(P_A, P_B):
 
 def calc_range(P_A, P_B):
     grid_factor = 1
-    N_comp = P_B.lat - P_A.lat
-    E_comp = P_B.lon - P_A.lon
+    N_comp = P_B.lat() - P_A.lat()
+    E_comp = P_B.lon() - P_A.lon()
     r_0 = sqrt(N_comp**2 + E_comp**2)
     return r_0*grid_factor
-
-
-def calc_cost(P_B):
-    pass
 
 
 def calc_heading(Psi):
