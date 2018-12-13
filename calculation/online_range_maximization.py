@@ -1,5 +1,4 @@
 from numpy import pi, arctan, sqrt, inf, rad2deg
-from calculation import consts
 from calculation import reachability_envelope
 
 
