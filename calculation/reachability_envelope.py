@@ -7,7 +7,7 @@ def calc_reach_env(V_0, W_XI, W_YI, d_Psi_I):
     Psi_i = 0
     V_opt, Psi_opt, RE = [], [], []
 
-    while Psi_i < pi:
+    while Psi_i < 2*pi:
         W_inplane, W_cross = calc_wind(Psi_i, W_XI, W_YI)
         V_star = calc_V_star(V_0, W_cross)
         V_opt.append(calc_opt_trajectory(W_inplane, W_cross, V_0, V_star))
