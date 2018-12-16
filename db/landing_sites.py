@@ -1,4 +1,6 @@
 import csv
+from numpy import inf
+from calculation import consts
 
 
 class LandingSite:
@@ -6,18 +8,22 @@ class LandingSite:
     num_of_sites = 0
     landing_sites_list = []
 
-    def __init__(self, name, lon, lat, altitude, rank):
+    def __init__(self, name, lat, lon, altitude, rank):
         self.uid = LandingSite.num_of_sites
         self.name = name
-        self.lat = lat
-        self.lon = lon
-        self.altitude = altitude
+        self.location = consts.Coordinate(lat, lon, altitude)
         self.rank = rank
         LandingSite.num_of_sites += 1
         LandingSite.landing_sites_list.append(self)
 
-    def cost(self):
-        return 1/self.rank
+    def cost(self, turn_angle=None):
+        if turn_angle is None:
+            if self.rank == 0:
+                return inf
+            else:
+                return 1/self.rank
+        else:
+            pass
 
     @staticmethod
     def clean_up():
@@ -37,8 +43,11 @@ def print_landing_sites():
     for site in LandingSite.landing_sites_list:
         print(site.name+": ")
         print("UID: " + str(site.uid))
-        print("coards - " + str(site.lat)+" N, "+str(site.lon)+" E")
-        print("height - " + str(site.altitude))
-        print("cost - " + str(site.cost()))
+        site.location.print_loc()
+        site.location.print_alt()
+        print("cost - " + "{0:.4f}".format(site.cost()))
+
+
+def delete_landing_sites():
     LandingSite.clean_up()
 

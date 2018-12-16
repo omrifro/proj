@@ -1,17 +1,18 @@
-from numpy import pi, arctan, sqrt, inf, rad2deg
+from numpy import pi, inf
 from calculation import reachability_envelope
+from calculation.consts import heading_str, mps2knots
+from db.landing_sites import LandingSite
 
 
-def maximize_range(P_A, Z_I, V_0, W_XI, W_YI, d_Psi_I, landing_sites):
+def maximize_range(P_A, V_0, W_XI, W_YI, d_Psi_I, landing_sites=LandingSite.landing_sites_list):
     chosen_site = None
     min_cost = inf
     site_index = -1
     RE, V_opt, Psi_opt = reachability_envelope.calc_reach_env(V_0, W_XI, W_YI, d_Psi_I)
     for site in landing_sites:
-        Psi_i = calc_psi(P_A, site)
-        r_0 = calc_range(P_A, site)
-        i = int((Psi_i % 2*pi)/d_Psi_I)
-        R_max = (site.altitude - Z_I)/RE[i]
+        Psi_i, r_0 = calc_psi_and_range(P_A, site.location)
+        i = int(Psi_i/d_Psi_I)
+        R_max = (P_A.alt_diff_to(site.location))/RE[i]
         if r_0 < R_max:
             current_cost = site.cost()
             if current_cost < min_cost:
@@ -24,41 +25,16 @@ def maximize_range(P_A, Z_I, V_0, W_XI, W_YI, d_Psi_I, landing_sites):
         optimal_velocity = V_opt[site_index]
         heading = Psi_opt[site_index]
         print("Best landing site is: " + landing_site_name)
-        print("Turn heading " + heading + "at speed of "+str(optimal_velocity))
+        print("Turn heading " + heading_str(heading) + " at speed of "+"{0:.2f}".format(mps2knots(optimal_velocity)) + " Knots")
         return RE, chosen_site, optimal_velocity, Psi_opt[site_index]
     else:
-        return None
+        print("Can NOT reach any landing field!!!")
+        return None, None, None, None
 
 
-def calc_psi(P_A, P_B):
-    N_comp = P_B.lat() - P_A.lat()
-    E_comp = P_B.lon() - P_A.lon()
-    Psi = arctan(N_comp/E_comp)
-    if E_comp < 0:
-        Psi += pi
-    elif Psi < 0:
-        Psi += 2*pi
-    return Psi
-
-
-def calc_range(P_A, P_B):
-    grid_factor = 1
-    N_comp = P_B.lat() - P_A.lat()
-    E_comp = P_B.lon() - P_A.lon()
-    r_0 = sqrt(N_comp**2 + E_comp**2)
-    return r_0*grid_factor
-
-
-def calc_heading(Psi):
-    deg = rad2deg(Psi)
-    deg = round(deg) + 90
-    deg %= 360
-    heading = str(deg)
-    if deg < 10:
-        return "00"+heading
-    elif deg < 100:
-        return "0"+heading
-    else:
-        return heading
-
+def calc_psi_and_range(P_A, P_B):
+    grid_factor = 111800
+    Psi = P_A.angle_to(P_B)
+    r_0 = P_A.ground_range_to(P_B, factor=grid_factor)
+    return Psi, r_0
 

@@ -1,4 +1,4 @@
-from numpy import sin, cos, arctan, pi, sqrt, real
+from numpy import sin, cos, arctan, pi, sqrt
 from scipy.optimize import fsolve
 from calculation import consts
 
@@ -27,10 +27,10 @@ def calc_wind(Psi_i, W_XI, W_YI):
 def calc_opt_trajectory(W_inplane, W_cross, V_0, V_star):
     W_inplane -= V_0
     V_b = sqrt(W_cross**2 + min(0, W_inplane)**2)
-    v_init = (V_b - V_star)/2
+    v_init = (V_b + V_star)/2
     func = lambda v: v**6 - 1.5*(W_cross**2)*v**4 + 0.5*W_inplane*sqrt(v**2 - W_cross**2)*(3*v**4 - 1) - v**2 + 0.5*W_cross**2
     V = fsolve(func, v_init)
-    return real(V) + V_0
+    return V[0] + V_0
 
 
 def glide_slope_func(V, V_0, W_inplane, W_cross):
