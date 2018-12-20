@@ -1,6 +1,7 @@
 import csv
 from numpy import inf
 from calculation import consts
+from map.maps_interface import Topography
 
 
 class LandingSite:
@@ -8,10 +9,11 @@ class LandingSite:
     num_of_sites = 0
     landing_sites_list = []
 
-    def __init__(self, name, lat, lon, altitude, rank):
+    def __init__(self, name, lat, lon, approch_alt, rank):
         self.uid = LandingSite.num_of_sites
         self.name = name
-        self.location = consts.Coordinate(lat, lon, altitude)
+        ground_height = Topography.get_height(lat=lat, lon=lon)
+        self.location = consts.Coordinate(lat, lon, ground_height+approch_alt)
         self.rank = rank
         LandingSite.num_of_sites += 1
         LandingSite.landing_sites_list.append(self)
