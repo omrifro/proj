@@ -10,11 +10,12 @@ class Topography:
     # list of 8 elevation maps
     maps = []
 
-    def __init__(self):
+    @staticmethod
+    def import_maps():
         for im in glob.iglob('map/*.tif'):
-            if len(self.maps) == 6:
-                self.maps.append(np.zeros((3601, 3601)))
-            self.maps.append(np.flip(np.array(Image.open(im)), 0))
+            if len(Topography.maps) == 6:
+                Topography.maps.append(np.zeros((3601, 3601)))
+            Topography.maps.append(np.flip(np.array(Image.open(im)), 0))
 
     @staticmethod
     def get_height(location=None, lat=0, lon=0):
@@ -32,6 +33,32 @@ class Topography:
             return np.inf
         x, y = get_indexes_in_map(lat, lon, map_idx)
         return Topography.maps[map_idx][x, y]
+
+    @staticmethod
+    def plot_terrain(map_idx=None):
+        if map_idx is None:
+            west_half = Topography.maps[0]
+            east_half = Topography.maps[1]
+            for i in range(3):
+                west_half = np.vstack((west_half, Topography.maps[2 * (i+1)]))
+                east_half = np.vstack((east_half, Topography.maps[2 * (i + 1) + 1]))
+            map_array = np.hstack((west_half, east_half))
+            x = np.linspace(0, 3601*2-1, 3601*2)
+            y = np.linspace(0, 3601*4-1, 3601*4)
+            size = (6, 10)
+            c_scale = 25
+        else:
+            map_array = Topography.maps[map_idx]
+            x = np.linspace(0, 3600, 3601)
+            y = x
+            size = (5, 5)
+            c_scale = 40
+
+        X, Y = np.meshgrid(x, y)
+        plt.figure(figsize=size, dpi=80)
+        plt.contourf(X, Y, map_array, c_scale, cmap='nipy_spectral')
+        plt.colorbar()
+        plt.show()
 
 
 def get_indexes_in_map(lat, lon, map_idx):
@@ -82,15 +109,4 @@ def get_map_index(lat, lon):
         else:
             return 7
 
-
-def plot_terrain(map_idx):
-    map_array = Topography.maps[map_idx]
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-
-    x = np.linspace(0, 3600, 3601)
-    X, Y = np.meshgrid(x, x)
-
-    ax.plot_surface(X, Y, map_array, cmap=plt.get_cmap('seismic'), linewidth=0, antialiased=False)
-    plt.show()
 
