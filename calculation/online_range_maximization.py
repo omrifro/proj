@@ -25,7 +25,8 @@ def maximize_range(P_A, V_0, W_XI, W_YI, d_Psi_I, landing_sites=LandingSite.land
         optimal_velocity = V_opt[site_index]
         heading = Psi_opt[site_index]
         print("Best landing site is: " + landing_site_name)
-        print("Turn heading " + heading_str(heading) + " at speed of "+"{0:.2f}".format(mps2knots(optimal_velocity)) + " Knots")
+        print("Turn heading " + heading_str(heading) + " at speed of "+"{0:.2f}".format(mps2knots(optimal_velocity)) \
+              + " Knots")
         return RE, chosen_site, optimal_velocity, Psi_opt[site_index]
     else:
         print("Can NOT reach any landing field!!!")
