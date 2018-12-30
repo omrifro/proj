@@ -1,18 +1,17 @@
 from numpy import sin, cos, pi, sqrt
 from scipy.optimize import fsolve
-from main import environment
 
 
-def calc_reach_env(V_0, W_XI, W_YI, d_Psi_I):
+def calc_reach_env(environment, W_XI, W_YI, d_Psi_I):
     Psi_i = 0
     V_opt, Psi_opt, RE = [], [], []
 
     while Psi_i < 2*pi:
         W_inplane, W_cross = calc_wind_projection(Psi_i, W_XI, W_YI)
-        V_l, V_h = calc_v_bounds(V_0, W_cross, W_inplane)
-        V_opt.append(calc_opt_trajectory(W_inplane, W_cross, V_0, (V_l + V_h)/2))
+        V_l, V_h = calc_v_bounds(environment.V_0, W_cross, W_inplane)
+        V_opt.append(calc_opt_trajectory(W_inplane, W_cross, environment.V_0, (V_l + V_h)/2))
         Psi_opt.append(calc_psi_equval(Psi_i))
-        RE.append(glide_slope_func(V_opt[-1], V_0, W_inplane, W_cross))
+        RE.append(glide_slope_func(V_opt[-1], environment, W_inplane, W_cross))
         Psi_i += d_Psi_I
 
     return RE, V_opt, Psi_opt
@@ -37,9 +36,9 @@ def calc_opt_trajectory(W_inplane, W_cross, V_0, V_init):
         return V[0] * V_0
 
 
-def glide_slope_func(V, V_0, W_inplane, W_cross):
+def glide_slope_func(V, environment, W_inplane, W_cross):
     K_SR = environment.K_SR
-    glide_slope = (K_SR*(V**4 + V_0**4))/(V*(sqrt(V**2 - W_cross**2) + W_inplane))
+    glide_slope = (K_SR*(V**4 + environment.V_0**4))/(V*(sqrt(V**2 - W_cross**2) + W_inplane))
     return glide_slope
 
 

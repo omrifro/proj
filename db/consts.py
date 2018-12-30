@@ -16,12 +16,21 @@ class Consts:
     def __init__(self):
         with open('db/consts_example.csv', 'r') as csv_file:
             reader = csv.reader(csv_file)
-            self.C_D0 = float(reader[0][0])
-            self.K = float(reader[1][0])
-            self.m = float(reader[2][0])
-            self.S = float(reader[3][0])
-            self.Ro = float(reader[4][0])
-            self.g = float(reader[5][0])
+            count = 0
+            for line in reader:
+                if count == 0:
+                    self.C_D0 = float(line[0])
+                elif count == 1:
+                    self.K = float(line[0])
+                elif count == 2:
+                    self.m = float(line[0])
+                elif count == 3:
+                    self.S = float(line[0])
+                elif count == 4:
+                    self.Ro = float(line[0])
+                elif count == 5:
+                    self.g = float(line[0])
+                count += 1
         self.K_SR = (self.Ro * self.S * self.C_D0) / (2 * self.m * self.g)
         self.V_0 = sqrt(((2 * self.m * self.g) / (self.Ro * self.S)) * sqrt(self.K / self.C_D0))
 

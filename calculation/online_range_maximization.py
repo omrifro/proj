@@ -4,11 +4,11 @@ from db.landing_sites import LandingSite
 from calculation import reachability_envelope
 
 
-def maximize_range(P_A, V_0, W_XI, W_YI, d_Psi_I, landing_sites=LandingSite.landing_sites_list):
+def maximize_range(P_A, environment, W_XI, W_YI, d_Psi_I, landing_sites=LandingSite.landing_sites_list):
     chosen_site = None
     min_cost = inf
     site_index = -1
-    RE, V_opt, Psi_opt = reachability_envelope.calc_reach_env(V_0, W_XI, W_YI, d_Psi_I)
+    RE, V_opt, Psi_opt = reachability_envelope.calc_reach_env(environment, W_XI, W_YI, d_Psi_I)
     for site in landing_sites:
         Psi_i, r_0 = calc_psi_and_range(P_A, site.location)
         i = int(Psi_i/d_Psi_I)
