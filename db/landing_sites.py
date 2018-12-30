@@ -1,6 +1,6 @@
 import csv
 from numpy import inf
-from calculation import consts
+from db import consts
 from map.maps_interface import Topography
 
 

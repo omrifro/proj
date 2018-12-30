@@ -1,9 +1,7 @@
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 from PIL import Image
 import glob
 import matplotlib.pyplot as plt
 import numpy as np
-from calculation.consts import Coordinate
 
 
 class Topography:

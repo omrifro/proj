@@ -1,9 +1,10 @@
-from numpy import pi, sqrt, array
+from numpy import pi
 from map.maps_interface import Topography
+from map.coordinate import Coordinate
 from db.landing_sites import LandingSite
+from db import consts
 from calculation.online_range_maximization import maximize_range
-from calculation import consts
-from calculation.consts import Coordinate
+
 
 if __name__ == "__main__":
     Topography.import_maps()
@@ -12,7 +13,8 @@ if __name__ == "__main__":
     LandingSite.print_landing_sites()
 
     # calculate V0 for this aircraft
-    v_0 = sqrt(((2 * consts.m * consts.g)/(consts.Ro * consts.S))*sqrt(consts.K / consts.C_D0))
+    environment = consts.Consts()
+    v_0 = environment.V_0
     print("V0 is " + "{0:.3f}".format(consts.mps2knots(v_0)) + " Knots - (" +
           "{0:.3f}".format(consts.mps2kmh(v_0)) + " km/h)")
 

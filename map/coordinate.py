@@ -1,22 +1,6 @@
 from numpy import sqrt, arctan, pi, rad2deg
 
 
-C_L, C_D0 = 0, 0.0329       # Lift and profile drag coefficients
-D, L = 0, 0                 # Drag and lift force
-f, f_0 = 0, 0               # Glide slope function and sink rate function
-g_l, g_u = 0, 0             # Optimal velocity Lower and upper bounds auxiliary functions
-K = 0.0599                  # Induced drag coefficient
-m = 907                     # Aircraft’s mass
-n, n_max = 0, 0             # Load factor and maximal load factor
-q, q_0 = 0, 0               # Dynamic pressure, optimal dynamic pressure in still air
-S = 15.9793                 # Aerodynamic surface
-V_MS = 0                    # Minimum sink rate glide velocity
-V_stall, V_max = 0, 0       # Aircraft’s stall and maximum velocity
-Psi, Psi_max = 0, 0         # The bank angle, maximal bank angle
-Ro = 1.25                   # Air-density
-g = 9.80665                 # Gravitational force
-
-
 class Coordinate:
     def __init__(self, lat, lon, alt):
         self.lat = lat

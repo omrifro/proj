@@ -1,7 +1,7 @@
-from numpy import pi, inf
-from calculation import reachability_envelope
-from calculation.consts import heading_str, mps2knots
+from numpy import inf
+from map.coordinate import heading_str, mps2knots
 from db.landing_sites import LandingSite
+from calculation import reachability_envelope
 
 
 def maximize_range(P_A, V_0, W_XI, W_YI, d_Psi_I, landing_sites=LandingSite.landing_sites_list):

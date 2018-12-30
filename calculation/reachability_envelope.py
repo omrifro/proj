@@ -1,6 +1,6 @@
 from numpy import sin, cos, pi, sqrt
 from scipy.optimize import fsolve
-from calculation import consts
+from main import environment
 
 
 def calc_reach_env(V_0, W_XI, W_YI, d_Psi_I):
@@ -27,7 +27,8 @@ def calc_wind_projection(Psi_i, W_XI, W_YI):
 def calc_opt_trajectory(W_inplane, W_cross, V_0, V_init):
     W_inplane /= V_0
     W_cross /= V_0
-    func = lambda v: (v**6) - 1.5 * (W_cross**2) * (v**4) + 0.5 * W_inplane * sqrt(v**2 - W_cross**2) * (3 * (v**4) - 1) - (v**2) + 0.5 * (W_cross**2)
+    func = lambda v: (v**6) - 1.5 * (W_cross**2) * (v**4) + 0.5 * W_inplane * sqrt(v**2 - W_cross**2) *\
+                     (3 * (v**4) - 1) - (v**2) + 0.5 * (W_cross**2)
     V, _, solved, msg = fsolve(func, V_init, full_output=True)
     if solved == 1:
         return V[0] * V_0
@@ -37,17 +38,17 @@ def calc_opt_trajectory(W_inplane, W_cross, V_0, V_init):
 
 
 def glide_slope_func(V, V_0, W_inplane, W_cross):
-    K_SR = (consts.Ro*consts.S*consts.C_D0)/(2*consts.m*consts.g)
+    K_SR = environment.K_SR
     glide_slope = (K_SR*(V**4 + V_0**4))/(V*(sqrt(V**2 - W_cross**2) + W_inplane))
     return glide_slope
 
 
 def calc_v_bounds(V_0, W_inplane, W_cross):
-    v_l = (1 / V_0) * sqrt(1.5 * W_cross**2 + 1.125 * W_inplane**2 - 1.5 * W_inplane \
-                         * sqrt(0.5*W_cross**2 + 0.5625*W_inplane**2))
+    v_l = (1 / V_0) * sqrt(1.5 * W_cross**2 + 1.125 * W_inplane**2 - 1.5 * W_inplane *\
+                           sqrt(0.5*W_cross**2 + 0.5625*W_inplane**2))
 
-    v_h = (1 / V_0) * sqrt(1.5 * W_cross**2 + 1.125 * W_inplane**2 + 1 - 1.5 * W_inplane \
-                         * sqrt(0.5*W_cross**2 + 0.5625*W_inplane**2 + 1))
+    v_h = (1 / V_0) * sqrt(1.5 * W_cross**2 + 1.125 * W_inplane**2 + 1 - 1.5 * W_inplane *\
+                           sqrt(0.5*W_cross**2 + 0.5625*W_inplane**2 + 1))
     return max(v_l, 1/(3**(1/4))), max(v_h, 1)
 
 
