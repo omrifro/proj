@@ -1,7 +1,7 @@
 from numpy import inf
-from map.coordinate import heading_str, mps2knots
 from db.landing_sites import LandingSite
 from calculation import reachability_envelope
+from map.maps_interface import get_range, get_bearing
 
 
 def maximize_range(P_A, environment, W_XI, W_YI, d_Psi_I, landing_sites=LandingSite.landing_sites_list):
@@ -12,7 +12,7 @@ def maximize_range(P_A, environment, W_XI, W_YI, d_Psi_I, landing_sites=LandingS
     for site in landing_sites:
         Psi_i, r_0 = calc_psi_and_range(P_A, site.location)
         i = int(Psi_i/d_Psi_I)
-        R_max = (P_A.alt_diff_to(site.location))/RE[i]
+        R_max = (P_A[2] - site.location[2])/RE[i]
         if r_0 < R_max:
             current_cost = site.cost()
             if current_cost < min_cost:
@@ -23,10 +23,7 @@ def maximize_range(P_A, environment, W_XI, W_YI, d_Psi_I, landing_sites=LandingS
     if chosen_site is not None:
         landing_site_name = chosen_site.name
         optimal_velocity = V_opt[site_index]
-        heading = Psi_opt[site_index]
         print("Best landing site is: " + landing_site_name)
-        print("Turn heading " + heading_str(heading) + " at speed of "+"{0:.2f}".format(mps2knots(optimal_velocity)) \
-              + " Knots")
         return RE, chosen_site, optimal_velocity, Psi_opt[site_index]
     else:
         print("Can NOT reach any landing field!!!")
@@ -34,8 +31,7 @@ def maximize_range(P_A, environment, W_XI, W_YI, d_Psi_I, landing_sites=LandingS
 
 
 def calc_psi_and_range(P_A, P_B):
-    grid_factor = 111800
-    Psi = P_A.angle_to(P_B)
-    r_0 = P_A.ground_range_to(P_B, factor=grid_factor)
+    Psi = get_bearing(P_A, P_B)
+    r_0 = get_range(P_A, P_B)
     return Psi, r_0
 

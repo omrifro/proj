@@ -1,110 +1,88 @@
-from PIL import Image
-import glob
+import gdal
 import matplotlib.pyplot as plt
 import numpy as np
+from haversine import haversine
 
 
 class Topography:
-    # list of 8 elevation maps
-    maps = []
+
+    xoff, a, b, yoff, d, e = None, None, None, None, None, None
+    map_array = None
+
+    def __init__(self):
+        data_set = gdal.Open('map/israel.tif')
+        xoff, a, b, yoff, d, e = data_set.GetGeoTransform()
+        Topography.xoff, Topography.a, Topography.b = xoff, a, b
+        Topography.yoff, Topography.d, Topography.e = yoff, d, e
+        Topography.map_array = data_set.ReadAsArray()
 
     @staticmethod
-    def import_maps():
-        for im in glob.iglob('map/*.tif'):
-            if len(Topography.maps) == 6:
-                Topography.maps.append(np.zeros((3601, 3601)))
-            Topography.maps.append(np.flip(np.array(Image.open(im)), 0))
-
-    @staticmethod
-    def get_height(location=None, lat=0, lon=0):
+    def get_height_by_coordinate(xp, yp):
         # TODO: Implement caching
-        if location is None:
-            if lat == 0 or lon == 0:
-                return np.inf
-        else:
-            lat = location.lat
-            lon = location.lon
+        xoff, a, b = Topography.xoff, Topography.a, Topography.b
+        yoff, d, e = Topography.yoff, Topography.d, Topography.e
 
-        map_idx = get_map_index(lat, lon)
-        if map_idx < 0:
-            # not in DB range
-            return np.inf
-        x, y = get_indexes_in_map(lat, lon, map_idx)
-        return Topography.maps[map_idx][x, y]
+        det = a * e - b * d
+        x = round((b * (yp - yoff) - e * (xp - xoff)) / det)
+        y = round((a * (yoff - yp) + d * (xp - xoff)) / det)
+
+        if x < 0 or y < 0 or x >= Topography.map_array.shape[0] or y >= Topography.map_array.shape[1]:
+            exit(-1)
+        return Topography.map_array[x][y]
 
     @staticmethod
-    def plot_terrain(map_idx=None):
-        if map_idx is None:
-            west_half = Topography.maps[0]
-            east_half = Topography.maps[1]
-            for i in range(3):
-                west_half = np.vstack((west_half, Topography.maps[2 * (i+1)]))
-                east_half = np.vstack((east_half, Topography.maps[2 * (i + 1) + 1]))
-            map_array = np.hstack((west_half, east_half))
-            x = np.linspace(0, 3601*2-1, 3601*2)
-            y = np.linspace(0, 3601*4-1, 3601*4)
-            size = (6, 10)
-            c_scale = 25
-        else:
-            map_array = Topography.maps[map_idx]
-            x = np.linspace(0, 3600, 3601)
-            y = x
-            size = (5, 5)
-            c_scale = 40
-
+    def plot_terrain():
+        x = np.linspace(0, Topography.map_array.shape[1]-1, Topography.map_array.shape[1])
+        y = np.linspace(0, Topography.map_array.shape[0]-1, Topography.map_array.shape[0])
         X, Y = np.meshgrid(x, y)
-        plt.figure(figsize=size, dpi=80)
-        plt.contourf(X, Y, map_array, c_scale, cmap='nipy_spectral')
+        plt.figure(figsize=(6, 10), dpi=80)
+        plt.contourf(X, Y, np.flip(Topography.map_array, axis=0), 25, cmap='nipy_spectral')
         plt.colorbar()
         plt.show()
 
 
-def get_indexes_in_map(lat, lon, map_idx):
-
-    if map_idx < 2:
-        lat -= 30
-    elif map_idx < 4:
-        lat -= 31
-    elif map_idx < 6:
-        lat -= 32
+def get_range(src_3d, dst_3d, unit='m'):
+    src = tuple([src_3d[0], src_3d[1]])
+    dst = tuple([dst_3d[0], dst_3d[1]])
+    if len(src_3d) < 3 or len(dst_3d):
+        src_alt, dst_alt = 0, 0
+    elif src_3d[2] is None or dst_3d[2] is None:
+        src_alt, dst_alt = 0, 0
     else:
-        lat -= 33
+        src_alt, dst_alt = src_3d[2], dst_3d[2]
 
-    if not map_idx % 2:
-        lon -= 34
+    gnd_dist = haversine(src, dst, unit=unit)
+    alt_diff = abs(dst_alt - src_alt)
+
+    return np.sqrt(gnd_dist**2 + alt_diff**2)
+
+
+def get_bearing(src_3d, dst_3d, unit='rad'):
+    src = tuple([src_3d[0], src_3d[1]])
+    dst = tuple([dst_3d[0], dst_3d[1]])
+    rel_pnt = (dst[0], src[1])
+    a = get_range(rel_pnt, src)
+    b = get_range(rel_pnt, dst)
+    if src[0] > dst[0]:
+        a = -a
+    if src[1] > dst[1]:
+        b = -b
+    angle = np.arctan2(a, b) % (2 * np.pi)
+
+    if unit is 'deg':
+        return np.rad2deg(-angle + np.pi/2) % 360
     else:
-        lon -= 35
-
-    lat_idx = int(lat * 3601)
-    lon_inx = int(lon * 3601)
-
-    return lat_idx, lon_inx
+        return angle
 
 
-def get_map_index(lat, lon):
-    # check in range
-    if lat < 30 or lat >= 34 or lon < 34 or lon >= 36:
-        return -1
-    # calc index
-    if lat < 31:
-        if lon <= 35:
-            return 0
-        else:
-            return 1
-    elif lat < 32:
-        if lon <= 35:
-            return 2
-        else:
-            return 3
-    elif lat < 33:
-        if lon <= 35:
-            return 4
-        else:
-            return 5
-    else:
-        if lon <= 35:
-            return 6
-        else:
-            return 7
+def mps2knots(speed):
+    return 1.94384 * speed
 
+
+def mps2kmh(speed):
+    return 3.6 * speed
+
+
+def m2ft(height):
+    return 3.28084 * height
 

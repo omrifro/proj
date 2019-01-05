@@ -1,6 +1,5 @@
 import csv
 from numpy import inf
-from map import coordinate
 from map.maps_interface import Topography
 
 
@@ -30,18 +29,19 @@ class LandingSite:
             for line in reader:
                 name = line[0]
                 lat, lon = float(line[1]), float(line[2])
-                ground_height = Topography.get_height(lat=lat, lon=lon)
-                location = coordinate.Coordinate(lat, lon, ground_height + int(line[3]))
-                rank = int(line[4])
+                ground_height = Topography.get_height_by_coordinate(lat, lon)
+                location = (lat, lon, ground_height + 100)
+                rank = int(line[3])
                 LandingSite.landing_sites_list.append(LandingSite(name, location, rank))
 
     @staticmethod
     def print_landing_sites():
         for site in LandingSite.landing_sites_list:
+            print("")
             print(site.name+": ")
             print("UID: " + str(site.uid))
-            site.location.print_loc()
-            site.location.print_alt()
+            print(site.location)
+            print(site.location)
             print("cost - " + "{0:.4f}".format(site.cost()))
 
     @staticmethod

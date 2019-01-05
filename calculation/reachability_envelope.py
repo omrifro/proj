@@ -32,7 +32,7 @@ def calc_opt_trajectory(W_inplane, W_cross, V_0, V_init):
     if solved == 1:
         return V[0] * V_0
     else:
-        print(msg)
+        # print(msg)
         return V[0] * V_0
 
 
