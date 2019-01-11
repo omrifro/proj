@@ -3,7 +3,7 @@ from map import maps_interface
 from db.landing_sites import LandingSite
 from db import consts
 from calculation.online_range_maximization import maximize_range
-import ogr
+from calculation.plot_graphs import plot_glide_ratio_and_velocity, plot_glide_ratio_sensitivity
 
 
 if __name__ == "__main__":
@@ -35,9 +35,18 @@ if __name__ == "__main__":
           "{0:.3f}".format(maps_interface.mps2kmh(v_0)) + " km/h)")
 
     # Initial state (example)
-    current_loc = (32.775, 35.025, 4000)
-    w_x, w_y = 8, 12
+    current_loc = (33.001, 35.001, 2000)
+    w_x, w_y = 6, 8
+
+    # plot map
+    israelMap.plot_terrain(current_loc)
 
     # Find best Landing field
-    RE, site_opt, V_opt, Psi_opt = maximize_range(P_A=current_loc, environment=environment, W_XI=w_x, W_YI=w_y, d_Psi_I=(2*pi)/360)
-    print("baaaaa")
+    RE, site_opt, V_opt, Psi_opt = maximize_range(P_A=current_loc, environment=environment, W_XI=w_x, W_YI=w_y,
+                                                  d_Psi_I=(2*pi)/360)
+
+    # plot the graphs from the paper
+    plot_glide_ratio_and_velocity(current_loc, environment)
+    plot_glide_ratio_sensitivity(environment)
+
+    #print("baaaaa")

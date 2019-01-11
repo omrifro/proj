@@ -18,7 +18,11 @@ class Topography:
 
     @staticmethod
     def get_height_by_coordinate(xp, yp):
-        # TODO: Implement caching
+        x, y = Topography.get_index_from_coordinate(xp, yp)
+        return Topography.map_array[x][y]
+
+    @staticmethod
+    def get_index_from_coordinate(xp, yp):
         xoff, a, b = Topography.xoff, Topography.a, Topography.b
         yoff, d, e = Topography.yoff, Topography.d, Topography.e
 
@@ -28,15 +32,18 @@ class Topography:
 
         if x < 0 or y < 0 or x >= Topography.map_array.shape[0] or y >= Topography.map_array.shape[1]:
             exit(-1)
-        return Topography.map_array[x][y]
+        return x, y
 
     @staticmethod
-    def plot_terrain():
+    def plot_terrain(location):
         x = np.linspace(0, Topography.map_array.shape[1]-1, Topography.map_array.shape[1])
         y = np.linspace(0, Topography.map_array.shape[0]-1, Topography.map_array.shape[0])
         X, Y = np.meshgrid(x, y)
         plt.figure(figsize=(6, 10), dpi=80)
         plt.contourf(X, Y, np.flip(Topography.map_array, axis=0), 25, cmap='nipy_spectral')
+        # plot current location
+        x, y = Topography.get_index_from_coordinate(location[0], location[1])
+        plt.plot(y, Topography.map_array.shape[0] - x, 'ro')
         plt.colorbar()
         plt.show()
 

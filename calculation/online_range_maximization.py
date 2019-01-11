@@ -21,13 +21,12 @@ def maximize_range(P_A, environment, W_XI, W_YI, d_Psi_I, landing_sites=LandingS
                 site_index = i
 
     if chosen_site is not None:
-        landing_site_name = chosen_site.name
         optimal_velocity = V_opt[site_index]
-        print("Best landing site is: " + landing_site_name)
-        return RE, chosen_site, optimal_velocity, Psi_opt[site_index]
+        # return RE, chosen_site, optimal_velocity, Psi_opt[site_index]
+        return RE, chosen_site, V_opt, Psi_opt[site_index]
     else:
         print("Can NOT reach any landing field!!!")
-        return None, None, None, None
+        return RE, None, V_opt, Psi_opt
 
 
 def calc_psi_and_range(P_A, P_B):

@@ -1,5 +1,6 @@
-from numpy import sin, cos, pi, sqrt
+from numpy import sin, cos, arctan, pi, sqrt, linspace, argmin
 from scipy.optimize import fsolve
+from pynverse import inversefunc
 
 
 def calc_reach_env(environment, W_XI, W_YI, d_Psi_I):
@@ -8,9 +9,10 @@ def calc_reach_env(environment, W_XI, W_YI, d_Psi_I):
 
     while Psi_i < 2*pi:
         W_inplane, W_cross = calc_wind_projection(Psi_i, W_XI, W_YI)
-        V_l, V_h = calc_v_bounds(environment.V_0, W_cross, W_inplane)
-        V_opt.append(calc_opt_trajectory(W_inplane, W_cross, environment.V_0, (V_l + V_h)/2))
-        Psi_opt.append(calc_psi_equval(Psi_i))
+        V_l, V_u = calc_v_bounds(environment.V_0, W_cross, W_inplane)
+        # print("V_l, V_u = " + str(V_l) + ", " + str(V_u))
+        V_opt.append(calc_opt_trajectory(W_inplane, W_cross, environment.V_0, V_l, V_u))
+        Psi_opt.append(calc_psi_equval(Psi_i, W_cross, V_opt[-1]))
         RE.append(glide_slope_func(V_opt[-1], environment, W_inplane, W_cross))
         Psi_i += d_Psi_I
 
@@ -23,17 +25,19 @@ def calc_wind_projection(Psi_i, W_XI, W_YI):
     return W_inplane, W_cross
 
 
-def calc_opt_trajectory(W_inplane, W_cross, V_0, V_init):
+def calc_opt_trajectory(W_inplane, W_cross, V_0, V_l, V_u):
+    V_init = (V_l + V_u)/2
     W_inplane /= V_0
     W_cross /= V_0
     func = lambda v: (v**6) - 1.5 * (W_cross**2) * (v**4) + 0.5 * W_inplane * sqrt(v**2 - W_cross**2) *\
                      (3 * (v**4) - 1) - (v**2) + 0.5 * (W_cross**2)
-    V, _, solved, msg = fsolve(func, V_init, full_output=True)
+    V, _, solved, _ = fsolve(func, V_init, full_output=True)
     if solved == 1:
         return V[0] * V_0
     else:
-        # print(msg)
-        return V[0] * V_0
+        V_values = linspace(V_l, V_u, 1000)
+        min_idx = argmin(abs(func(V_values)))
+        return V_values[min_idx] * V_0
 
 
 def glide_slope_func(V, environment, W_inplane, W_cross):
@@ -43,13 +47,15 @@ def glide_slope_func(V, environment, W_inplane, W_cross):
 
 
 def calc_v_bounds(V_0, W_inplane, W_cross):
-    v_l = (1 / V_0) * sqrt(1.5 * W_cross**2 + 1.125 * W_inplane**2 - 1.5 * W_inplane *\
-                           sqrt(0.5*W_cross**2 + 0.5625*W_inplane**2))
+    W_inplane /= V_0
+    W_cross /= V_0
+    v_l = sqrt(1.5 * W_cross**2 + 1.125 * W_inplane**2 - 1.5 * W_inplane *
+               sqrt(0.5*W_cross**2 + 0.5625*W_inplane**2))
+    v_u = sqrt(1.5 * W_cross**2 + 1.125 * W_inplane**2 + 1 - 1.5 * W_inplane *
+               sqrt(0.5*W_cross**2 + 0.5625*W_inplane**2 + 1))
 
-    v_h = (1 / V_0) * sqrt(1.5 * W_cross**2 + 1.125 * W_inplane**2 + 1 - 1.5 * W_inplane *\
-                           sqrt(0.5*W_cross**2 + 0.5625*W_inplane**2 + 1))
-    return max(v_l, 1/(3**(1/4))), max(v_h, 1)
+    return max(v_l, 1/(3**(1/4))), max(v_u, 1)
 
 
-def calc_psi_equval(Psi):
-    return 1*Psi    # TODO: caculate equevalent
+def calc_psi_equval(Psi_i, W_cross, V):
+    return Psi_i + arctan(-W_cross / V)
