@@ -5,12 +5,11 @@ from pynverse import inversefunc
 
 def calc_reach_env(environment, W_XI, W_YI, d_Psi_I):
     Psi_i = 0
-    V_opt, Psi_opt, RE = [], [], []
+    V_opt, Psi_opt, RE, lower, upper = [], [], [], [], []
 
     while Psi_i < 2*pi:
         W_inplane, W_cross = calc_wind_projection(Psi_i, W_XI, W_YI)
-        V_l, V_u = calc_v_bounds(environment.V_0, W_cross, W_inplane)
-        # print("V_l, V_u = " + str(V_l) + ", " + str(V_u))
+        V_l, V_u = calc_v_bounds(environment.V_0, W_inplane, W_cross)
         V_opt.append(calc_opt_trajectory(W_inplane, W_cross, environment.V_0, V_l, V_u))
         Psi_opt.append(calc_psi_equval(Psi_i, W_cross, V_opt[-1]))
         RE.append(glide_slope_func(V_opt[-1], environment, W_inplane, W_cross))
@@ -25,19 +24,32 @@ def calc_wind_projection(Psi_i, W_XI, W_YI):
     return W_inplane, W_cross
 
 
+def eq_36(v, w_inplane, w_cross):
+    return (v ** 6) - 1.5 * (w_cross ** 2) * (v ** 4) + 0.5 * w_inplane * sqrt(v ** 2 - w_cross ** 2) *\
+           (3 * (v ** 4) - 1) - (v ** 2) + 0.5 * (w_cross ** 2)
+
+
 def calc_opt_trajectory(W_inplane, W_cross, V_0, V_l, V_u):
-    V_init = (V_l + V_u)/2
     W_inplane /= V_0
     W_cross /= V_0
+    """
+    low, high = V_l, V_u
+    v_star = (low + high) / 2
+    th = 0.00001
+    while abs(eq_36(v_star, W_inplane, W_cross)):
+        if (high - low) < th:
+            break
+        if eq_36(v_star, W_inplane, W_cross) < 0:
+            low = v_star
+        else:
+            high = v_star
+        v_star = (low + high) / 2
+    return v_star * V_0
+    """
     func = lambda v: (v**6) - 1.5 * (W_cross**2) * (v**4) + 0.5 * W_inplane * sqrt(v**2 - W_cross**2) *\
                      (3 * (v**4) - 1) - (v**2) + 0.5 * (W_cross**2)
-    V, _, solved, _ = fsolve(func, V_init, full_output=True)
-    if solved == 1:
-        return V[0] * V_0
-    else:
-        V_values = linspace(V_l, V_u, 1000)
-        min_idx = argmin(abs(func(V_values)))
-        return V_values[min_idx] * V_0
+    V = fsolve(func, (V_l + V_u) / 2)
+    return V[0] * V_0
 
 
 def glide_slope_func(V, environment, W_inplane, W_cross):
@@ -49,10 +61,10 @@ def glide_slope_func(V, environment, W_inplane, W_cross):
 def calc_v_bounds(V_0, W_inplane, W_cross):
     W_inplane /= V_0
     W_cross /= V_0
-    v_l = sqrt(1.5 * W_cross**2 + 1.125 * W_inplane**2 - 1.5 * W_inplane *
-               sqrt(0.5*W_cross**2 + 0.5625*W_inplane**2))
-    v_u = sqrt(1.5 * W_cross**2 + 1.125 * W_inplane**2 + 1 - 1.5 * W_inplane *
-               sqrt(0.5*W_cross**2 + 0.5625*W_inplane**2 + 1))
+    v_l = sqrt(abs(1.5 * W_cross**2 + 1.125 * W_inplane**2 - 1.5 * W_inplane *
+                   sqrt(0.5*W_cross**2 + 0.5625*W_inplane**2)))
+    v_u = sqrt(abs(1.5 * W_cross**2 + 1.125 * W_inplane**2 + 1 - 1.5 * W_inplane *
+                   sqrt(0.5*W_cross**2 + 0.5625*W_inplane**2 + 1)))
 
     return max(v_l, 1/(3**(1/4))), max(v_u, 1)
 

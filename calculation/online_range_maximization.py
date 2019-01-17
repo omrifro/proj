@@ -25,7 +25,7 @@ def maximize_range(P_A, environment, W_XI, W_YI, d_Psi_I, landing_sites=LandingS
         # return RE, chosen_site, optimal_velocity, Psi_opt[site_index]
         return RE, chosen_site, V_opt, Psi_opt[site_index]
     else:
-        print("Can NOT reach any landing field!!!")
+        #print("Can NOT reach any landing field!!!")
         return RE, None, V_opt, Psi_opt
 
 
