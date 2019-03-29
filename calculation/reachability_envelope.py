@@ -1,6 +1,6 @@
 from numpy import sin, cos, arctan, pi, sqrt, linspace, argmin
 from scipy.optimize import fsolve
-from pynverse import inversefunc
+
 
 
 def calc_reach_env(environment, W_XI, W_YI, d_Psi_I):

@@ -39,7 +39,7 @@ if __name__ == "__main__":
     w_x, w_y = 6, 8
 
     # plot map
-    #israelMap.plot_terrain(current_loc)
+    israelMap.plot_terrain(current_loc)
 
     # Find best Landing field
     RE, site_opt, V_opt, Psi_opt = maximize_range(P_A=current_loc, environment=environment, W_XI=w_x,

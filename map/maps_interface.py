@@ -2,6 +2,7 @@ import gdal
 import matplotlib.pyplot as plt
 import numpy as np
 from haversine import haversine
+from shapely.geometry import Polygon
 
 
 class Topography:
@@ -39,13 +40,42 @@ class Topography:
         x = np.linspace(0, Topography.map_array.shape[1]-1, Topography.map_array.shape[1])
         y = np.linspace(0, Topography.map_array.shape[0]-1, Topography.map_array.shape[0])
         X, Y = np.meshgrid(x, y)
+        levels_list = list(np.linspace(-450, 3000, 70))
         plt.figure(figsize=(6, 10), dpi=80)
-        plt.contourf(X, Y, np.flip(Topography.map_array, axis=0), 25, cmap='nipy_spectral')
+        # plt.contourf(X, Y, np.flip(Topography.map_array, axis=0), 25, cmap='nipy_spectral')
+        cs = plt.contour(X, Y, np.flip(Topography.map_array, axis=0), levels_list, cmap='nipy_spectral')
         # plot current location
         x, y = Topography.get_index_from_coordinate(location[0], location[1])
         plt.plot(y, Topography.map_array.shape[0] - x, 'ro')
         plt.colorbar()
         plt.show()
+
+        heights_list = []
+        for col in cs.collections:
+            # Loop through all polygons that have the same height level
+            plt.figure()
+            poly_list = []
+            for contour_path in col.get_paths():
+                # Create the polygon for this intensity level
+                # The first polygon in the path is the main one, the following ones are "holes"
+
+                for ncp, cp in enumerate(contour_path.to_polygons()):
+                    if len(cp) < 4:
+                        continue
+                    new_shape = Polygon(cp)
+                    if ncp == 0:
+                        poly = new_shape
+                        poly_list.append(poly)
+                        m, n = poly.exterior.xy
+                        plt.plot(m, n, color='#6699cc', alpha=0.7, linewidth=3, solid_capstyle='round', zorder=2)
+                    else:
+                        # Remove the holes if there are any
+                        poly = poly.difference(new_shape)
+                        # Can also be left out if you want to include all rings
+
+                # do something with polygon
+                plt.show()
+            heights_list.append((poly_list, levels_list.pop(0)))
 
 
 def get_range(src_3d, dst_3d, unit='m'):
